@@ -12,11 +12,21 @@ class Palillo{
 	}
 	
 	public synchronized void coger(){
+		while(enUso){
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		enUso = true;
 	}
 	
 	public synchronized void soltar(){
 		enUso = false;
+		this.notifyAll();
 	}
 }
 
@@ -30,6 +40,8 @@ class Filosofo extends Thread{
 		numero = posicion;
 		veces = numeroCena;
 		this.cena = cena;
+		this.pizq = posicion;
+		this.pder = (posicion+1) % cena.comensales;
 	}
 	@Override
 	public void run(){
@@ -53,18 +65,25 @@ class Filosofo extends Thread{
 	public void comer(){
 		System.out.println("Filosofo "+numero+" está comiendo...");
 		try {
-			sleep(new Random().nextInt(2000));
+			sleep(1+new Random().nextInt(2000));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void cogerPalillos(){
+		cena.cogerPalilloIzq(pizq);
+		System.out.println("Filosofo "+ numero +" coge el palillo "+pizq);
+		cena.cogerPalilloDer(pder);
+		System.out.println("Filosofo "+ numero +" coge el palillo "+pder);
 		
 	}
 	
 	public void soltarPalillos(){
-		
+		cena.soltarPalilloIzq(pizq);
+		System.out.println("Filosofo "+ numero +" suelta el palillo "+pizq);
+		cena.soltarPalilloDer(pder);
+		System.out.println("Filosofo "+ numero +" suelta el palillo "+pder);
 	}
 }
 
@@ -82,15 +101,23 @@ class Cena{
 	}
 	
 	public Palillo cogerPalillo(int x){
-		return new Palillo(x);
+		return palillos[x];
 	}
 	
-	public int cogerPalilloDer(int x){
-		return 0;
+	public void cogerPalilloDer(int x){
+		palillos[x].coger();
 	}
 	
-	public int cogerPalilloIzq(int x){
-		return 0;
+	public void cogerPalilloIzq(int x){
+		palillos[x].coger();
+	}
+	
+	public void soltarPalilloDer(int x){
+		palillos[x].soltar();
+	}
+	
+	public void soltarPalilloIzq(int x){
+		palillos[x].soltar();
 	}
 }
 
