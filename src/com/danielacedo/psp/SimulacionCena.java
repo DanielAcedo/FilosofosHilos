@@ -22,11 +22,13 @@ class Palillo{
 		}
 		
 		enUso = true;
+		System.out.println("Palillo "+numero+ " cogido");
 	}
 	
 	public synchronized void soltar(){
 		enUso = false;
-		this.notifyAll();
+		System.out.println("Palillo "+numero+ " soltado");
+		this.notify();
 	}
 }
 
@@ -40,8 +42,8 @@ class Filosofo extends Thread{
 		numero = posicion;
 		veces = numeroCena;
 		this.cena = cena;
-		this.pizq = posicion;
-		this.pder = (posicion+1) % cena.comensales;
+		this.pizq = cena.cogerPalilloIzq(numero);
+		this.pder = cena.cogerPalilloDer(numero);
 	}
 	@Override
 	public void run(){
@@ -66,24 +68,28 @@ class Filosofo extends Thread{
 		System.out.println("Filosofo "+numero+" está comiendo...");
 		try {
 			sleep(1+new Random().nextInt(2000));
+			System.out.println("Filosofo "+numero+" está satisfecho...");
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void cogerPalillos(){
-		cena.cogerPalilloIzq(pizq);
-		System.out.println("Filosofo "+ numero +" coge el palillo "+pizq);
-		cena.cogerPalilloDer(pder);
-		System.out.println("Filosofo "+ numero +" coge el palillo "+pder);
+		System.out.println("Filosofo "+numero+" trata de coger sus palillos");
 		
+		if(numero%2==0){
+			cena.cogerPalillo(pizq).coger();
+			cena.cogerPalillo(pder).coger();
+		}else{
+			cena.cogerPalillo(pder).coger();
+			cena.cogerPalillo(pizq).coger();
+		}
 	}
 	
 	public void soltarPalillos(){
-		cena.soltarPalilloIzq(pizq);
-		System.out.println("Filosofo "+ numero +" suelta el palillo "+pizq);
-		cena.soltarPalilloDer(pder);
-		System.out.println("Filosofo "+ numero +" suelta el palillo "+pder);
+		System.out.println("Filosofo "+numero+" suelta sus palillos");
+		cena.cogerPalillo(pizq).soltar();
+		cena.cogerPalillo(pder).soltar();
 	}
 }
 
@@ -104,20 +110,12 @@ class Cena{
 		return palillos[x];
 	}
 	
-	public void cogerPalilloDer(int x){
-		palillos[x].coger();
+	public int cogerPalilloDer(int x){
+		return (x+1) % comensales;
 	}
 	
-	public void cogerPalilloIzq(int x){
-		palillos[x].coger();
-	}
-	
-	public void soltarPalilloDer(int x){
-		palillos[x].soltar();
-	}
-	
-	public void soltarPalilloIzq(int x){
-		palillos[x].soltar();
+	public int cogerPalilloIzq(int x){
+		return x;
 	}
 }
 
